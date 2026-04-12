@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ─── Icon helpers ─────────────────────────────────────────────────────────────
@@ -101,7 +102,7 @@ const AI_QUESTIONS = [
 
 // ─── Styles (inline objects to avoid Tailwind dependency issues) ──────────────
 const S = {
-    page:         { background: '#030712', color: '#f9fafb', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1.6, minHeight: '100vh' },
+    page:         { background: '#030712', color: '#f9fafb', fontFamily: "'Inter', system-ui, sans-serif", lineHeight: 1.6, minHeight: '100vh', overflowX: 'hidden' },
     nav:          { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 60px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#030712', position: 'sticky', top: 0, zIndex: 100 },
     navLogo:      { display: 'flex', alignItems: 'center', gap: 10, fontSize: 20, fontWeight: 700, background: 'linear-gradient(135deg,#a78bfa,#818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
     navLinks:     { display: 'flex', alignItems: 'center', gap: 28, fontSize: 14, color: '#9ca3af' },
@@ -130,14 +131,35 @@ export default function LandingPage() {
 
     return (
         <div style={S.page}>
+            {/* ── Responsive Overrides injected cleanly ── */}
+            <style>{`
+                @media (max-width: 768px) {
+                    .m-px-60 { padding-left: 20px !important; padding-right: 20px !important; }
+                    .m-py-80 { padding-top: 60px !important; padding-bottom: 60px !important; }
+                    .m-pt-90 { padding-top: 50px !important; padding-bottom: 40px !important; }
+                    .m-hide { display: none !important; }
+                    .m-text-60 { font-size: 40px !important; letter-spacing: -1px !important; }
+                    .m-text-42 { font-size: 32px !important; }
+                    .m-text-36 { font-size: 28px !important; }
+                    .m-grid-1 { grid-template-columns: 1fr !important; }
+                    .m-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+                    .m-flex-col { flex-direction: column !important; }
+                    .m-align-start { align-items: flex-start !important; }
+                    .m-gap-24 { gap: 24px !important; }
+                    .m-dash-layout { display: flex !important; flex-direction: column !important; padding: 16px !important; }
+                    .m-sidebar { display: flex !important; flex-direction: row !important; overflow-x: auto !important; padding-bottom: 10px !important; border-bottom: none !important; white-space: nowrap; margin-bottom: 0 !important; }
+                    .m-hero-btns button { width: 100% !important; }
+                    .m-footer { justify-content: center !important; text-align: center; }
+                }
+            `}</style>
 
             {/* ── Nav ── */}
-            <nav style={S.nav}>
+            <nav style={S.nav} className="m-px-60">
                 <div style={S.navLogo}>
                     <IconTrend />
                     TREC
                 </div>
-                <div style={S.navLinks}>
+                <div style={S.navLinks} className="m-hide">
                     {['Features', 'Analytics', 'AI Assistant', 'Pricing'].map(l => (
                         <a key={l} href={`#${l.toLowerCase().replace(' ', '-')}`}
                            style={{ color: '#9ca3af', textDecoration: 'none' }}>{l}</a>
@@ -149,19 +171,19 @@ export default function LandingPage() {
             </nav>
 
             {/* ── Hero ── */}
-            <section style={S.hero}>
+            <section style={S.hero} className="m-px-60 m-pt-90">
                 <div style={S.heroBadge}>
                     <span style={{ width: 6, height: 6, background: '#7c3aed', borderRadius: '50%' }} />
                     Powered by Gemini AI — now in beta
                 </div>
-                <h1 style={S.h1}>
+                <h1 style={S.h1} className="m-text-60">
                     The <em style={S.h1Em}>smartest</em> way<br />to track expenses
                 </h1>
                 <p style={S.heroSub}>
                     TREC gives you full control over your money — with AI that understands
                     your spending, beautiful analytics, and insights that actually help.
                 </p>
-                <div style={S.heroBtns}>
+                <div style={S.heroBtns} className="m-hero-btns">
                     <button style={S.btnPrimary} onClick={() => navigate('/register')}>
                         Start tracking free
                     </button>
@@ -175,27 +197,29 @@ export default function LandingPage() {
             </section>
 
             {/* ── Dashboard mockup ── */}
-            <section id="analytics" style={{ padding: '0 60px 80px', maxWidth: 1100, margin: '0 auto' }}>
-                <div style={{ background: '#0f172a', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 20, overflow: 'hidden', padding: 28, display: 'grid', gridTemplateColumns: '190px 1fr', gap: 20, minHeight: 380 }}>
+            <section id="analytics" style={{ padding: '0 60px 80px', maxWidth: 1100, margin: '0 auto' }} className="m-px-60 m-py-80">
+                <div style={{ background: '#0f172a', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 20, overflow: 'hidden', padding: 28, display: 'grid', gridTemplateColumns: '190px 1fr', gap: 20, minHeight: 380 }} className="m-dash-layout">
 
                     {/* sidebar */}
                     <div style={{ background: '#111827', borderRadius: 10, padding: 16, border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.07)' }} className="m-hide">
                             <IconTrend />
                             <span style={{ fontSize: 13, fontWeight: 700, color: '#f9fafb' }}>TREC</span>
                         </div>
-                        {[{ label: 'Dashboard', active: true }, { label: 'Transactions' }, { label: 'Analytics' }, { label: 'AI Assistant' }, { label: 'Settings' }].map(item => (
-                            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, fontSize: 13, marginBottom: 4, cursor: 'default', background: item.active ? 'rgba(124,58,237,0.2)' : 'transparent', color: item.active ? '#a78bfa' : '#6b7280', border: item.active ? '1px solid rgba(124,58,237,0.2)' : '1px solid transparent' }}>
-                                <div style={{ width: 16, height: 16, background: item.active ? '#7c3aed' : '#374151', borderRadius: 4, flexShrink: 0 }} />
-                                {item.label}
-                            </div>
-                        ))}
+                        <div className="m-sidebar">
+                            {[{ label: 'Dashboard', active: true }, { label: 'Transactions' }, { label: 'Analytics' }, { label: 'AI Assistant' }, { label: 'Settings' }].map(item => (
+                                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, fontSize: 13, marginBottom: 4, cursor: 'default', background: item.active ? 'rgba(124,58,237,0.2)' : 'transparent', color: item.active ? '#a78bfa' : '#6b7280', border: item.active ? '1px solid rgba(124,58,237,0.2)' : '1px solid transparent' }}>
+                                    <div style={{ width: 16, height: 16, background: item.active ? '#7c3aed' : '#374151', borderRadius: 4, flexShrink: 0 }} className="m-hide" />
+                                    {item.label}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* main */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                         {/* stat cards */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }} className="m-grid-2">
                             {[
                                 { label: 'Total Income',   val: '₹65,000',   color: '#34d399', sub: '+12% vs last month' },
                                 { label: 'Total Expenses', val: '₹38,246',   color: '#f87171', sub: '↑ 8% vs last month' },
@@ -211,7 +235,7 @@ export default function LandingPage() {
                         </div>
 
                         {/* chart + tx */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="m-grid-1">
                             <div style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: 16 }}>
                                 <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12 }}>Income vs Expenses — Last 6 months</div>
                                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 80 }}>
@@ -249,7 +273,7 @@ export default function LandingPage() {
             </section>
 
             {/* ── Trust checks ── */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 40, padding: '40px 60px', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 40, padding: '40px 60px', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap' }} className="m-px-60 m-flex-col m-align-start m-gap-24">
                 {CHECKS.map((c, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#d1d5db' }}>
                         <div style={{ width: 20, height: 20, background: 'rgba(52,211,153,0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, color: '#34d399', fontWeight: 700 }}>✓</div>
@@ -259,11 +283,11 @@ export default function LandingPage() {
             </div>
 
             {/* ── Features ── */}
-            <section id="features" style={S.section}>
+            <section id="features" style={S.section} className="m-px-60 m-py-80">
                 <div style={S.sectionLabel}>Features</div>
-                <h2 style={S.sectionTitle}>Everything you need<br />to master your money</h2>
+                <h2 style={S.sectionTitle} className="m-text-42">Everything you need<br className="m-hide" />to master your money</h2>
                 <p style={S.sectionSub}>Built for individuals who want real clarity — not just spreadsheets.</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }} className="m-grid-1">
                     {FEATURES.map((f, i) => (
                         <div key={i} style={S.card}
                              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
@@ -280,13 +304,13 @@ export default function LandingPage() {
             </section>
 
             {/* ── How it works ── */}
-            <section id="how-it-works" style={{ padding: '80px 60px', maxWidth: 1100, margin: '0 auto' }}>
+            <section id="how-it-works" style={{ padding: '80px 60px', maxWidth: 1100, margin: '0 auto' }} className="m-px-60 m-py-80">
                 <div style={{ textAlign: 'center' }}>
                     <div style={S.sectionLabel}>How it works</div>
-                    <h2 style={{ ...S.sectionTitle, textAlign: 'center' }}>Up and running in minutes</h2>
+                    <h2 style={{ ...S.sectionTitle, textAlign: 'center' }} className="m-text-42">Up and running in minutes</h2>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0, position: 'relative', marginTop: 52 }}>
-                    <div style={{ position: 'absolute', top: 26, left: 'calc(16.66% + 10px)', right: 'calc(16.66% + 10px)', height: 1, background: 'linear-gradient(90deg,#7c3aed,#6366f1)', zIndex: 0 }} />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 0, position: 'relative', marginTop: 52 }} className="m-grid-1 m-gap-24">
+                    <div style={{ position: 'absolute', top: 26, left: 'calc(16.66% + 10px)', right: 'calc(16.66% + 10px)', height: 1, background: 'linear-gradient(90deg,#7c3aed,#6366f1)', zIndex: 0 }} className="m-hide" />
                     {STEPS.map((s, i) => (
                         <div key={i} style={{ textAlign: 'center', padding: '0 20px', position: 'relative', zIndex: 1 }}>
                             <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800, margin: '0 auto 20px', color: '#fff', boxShadow: '0 0 0 6px rgba(124,58,237,0.15)' }}>
@@ -300,11 +324,11 @@ export default function LandingPage() {
             </section>
 
             {/* ── AI section ── */}
-            <section id="ai-assistant" style={{ padding: '80px 60px', background: 'linear-gradient(135deg,rgba(124,58,237,0.08),rgba(99,102,241,0.05))', borderTop: '1px solid rgba(124,58,237,0.12)', borderBottom: '1px solid rgba(124,58,237,0.12)' }}>
-                <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
+            <section id="ai-assistant" style={{ padding: '80px 60px', background: 'linear-gradient(135deg,rgba(124,58,237,0.08),rgba(99,102,241,0.05))', borderTop: '1px solid rgba(124,58,237,0.12)', borderBottom: '1px solid rgba(124,58,237,0.12)' }} className="m-px-60 m-py-80">
+                <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }} className="m-grid-1 m-gap-24">
                     <div>
                         <div style={S.sectionLabel}>AI Assistant</div>
-                        <h2 style={{ ...S.sectionTitle, fontSize: 36 }}>Your personal<br />finance advisor</h2>
+                        <h2 style={{ ...S.sectionTitle, fontSize: 36 }} className="m-text-36">Your personal<br />finance advisor</h2>
                         <p style={{ color: '#9ca3af', fontSize: 15, lineHeight: 1.7, marginBottom: 28 }}>
                             TREC AI reads your real transaction history and gives you answers that
                             actually apply to your life — not generic advice.
@@ -347,11 +371,11 @@ export default function LandingPage() {
             </section>
 
             {/* ── Pricing ── */}
-            <section id="pricing" style={{ ...S.section, textAlign: 'center' }}>
+            <section id="pricing" style={{ ...S.section, textAlign: 'center' }} className="m-px-60 m-py-80">
                 <div style={S.sectionLabel}>Pricing</div>
-                <h2 style={S.sectionTitle}>Simple, honest pricing</h2>
+                <h2 style={S.sectionTitle} className="m-text-42">Simple, honest pricing</h2>
                 <p style={{ color: '#9ca3af', fontSize: 16, maxWidth: 440, margin: '0 auto' }}>Start for free. Self-host forever. Upgrade when you need AI at scale.</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20, marginTop: 52, textAlign: 'left' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20, marginTop: 52, textAlign: 'left' }} className="m-grid-1">
                     {PLANS.map((p, i) => (
                         <div key={i} style={{ background: '#0f172a', border: p.featured ? '2px solid #7c3aed' : '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 30, position: 'relative', ...(p.featured && { background: 'rgba(124,58,237,0.08)' }) }}>
                             {p.featured && (
@@ -381,14 +405,14 @@ export default function LandingPage() {
             </section>
 
             {/* ── CTA ── */}
-            <section style={{ textAlign: 'center', padding: '100px 60px', background: 'radial-gradient(ellipse 60% 50% at 50% 100%,rgba(124,58,237,0.18),transparent)' }}>
-                <h2 style={{ fontSize: 48, fontWeight: 800, marginBottom: 16, letterSpacing: -1.5 }}>
+            <section style={{ textAlign: 'center', padding: '100px 60px', background: 'radial-gradient(ellipse 60% 50% at 50% 100%,rgba(124,58,237,0.18),transparent)' }} className="m-px-60 m-py-80">
+                <h2 style={{ fontSize: 48, fontWeight: 800, marginBottom: 16, letterSpacing: -1.5 }} className="m-text-42">
                     Start tracking <em style={S.h1Em}>smarter</em> today
                 </h2>
                 <p style={{ color: '#9ca3af', fontSize: 16, marginBottom: 36 }}>
                     Join thousands who have clarity over their finances. Free forever.
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }} className="m-hero-btns">
                     <button style={S.btnPrimary} onClick={() => navigate('/register')}>
                         Get started — it's free
                     </button>
@@ -402,9 +426,9 @@ export default function LandingPage() {
             </section>
 
             {/* ── Footer ── */}
-            <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '40px 60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+            <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '40px 60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }} className="m-px-60 m-flex-col m-footer">
                 <div style={{ ...S.navLogo }}>TREC</div>
-                <div style={{ display: 'flex', gap: 24, fontSize: 13, color: '#6b7280' }}>
+                <div style={{ display: 'flex', gap: 24, fontSize: 13, color: '#6b7280', flexWrap: 'wrap', justifyContent: 'center' }}>
                     {['Features', 'Docs', 'Privacy', 'Terms', 'GitHub'].map(l => (
                         <a key={l} href="#" style={{ color: '#6b7280', textDecoration: 'none' }}>{l}</a>
                     ))}
