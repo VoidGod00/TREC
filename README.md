@@ -2,8 +2,6 @@
 
 > Enterprise-grade personal finance tracker with AI-powered insights, real-time analytics, and a beautiful dark-mode React UI.
 
-[![CI/CD](https://github.com/your-org/trec/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/trec/actions)
-[![Coverage](https://codecov.io/gh/your-org/trec/branch/main/graph/badge.svg)](https://codecov.io/gh/your-org/trec)
 
 ---
 
