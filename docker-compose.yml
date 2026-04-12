@@ -1,0 +1,94 @@
+services:
+  # ─── PostgreSQL ───────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: trec_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: trec_db
+      POSTGRES_USER: trec_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trec123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trec_user -d trec_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - trec_network
+
+  # ─── Redis ────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: trec_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - trec_network
+
+  # ─── Backend ──────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: trec_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://trec_user:${POSTGRES_PASSWORD:-trec_secret_2024}@postgres:5432/trec_db
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: ${SECRET_KEY:-dev_secret_key_change_in_production_32x}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-placeholder}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+      ALLOWED_ORIGINS: '["http://localhost","http://localhost:3000","http://localhost:80"]'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    networks:
+      - trec_network
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ─── Frontend ─────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api/v1}
+    container_name: trec_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - trec_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  trec_network:
+    driver: bridge
