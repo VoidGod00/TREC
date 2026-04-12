@@ -159,7 +159,7 @@ class TestAuthAPI:
 
     def test_get_me_requires_auth(self, client):
         response = client.get("/api/v1/auth/me")
-        assert response.status_code == 403
+        assert response.status_code == 401
 
     def test_get_me_with_auth(self, client, auth_headers):
         response = client.get("/api/v1/auth/me", headers=auth_headers)

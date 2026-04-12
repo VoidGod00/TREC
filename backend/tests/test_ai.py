@@ -68,7 +68,7 @@ class TestAIAPI:
         assert client.post("/api/v1/ai/ask", headers=auth_headers, json={"question": "x"*1001}).status_code == 400
 
     def test_ask_requires_auth(self, client):
-        assert client.post("/api/v1/ai/ask", json={"question": "Hi"}).status_code == 403
+        assert client.post("/api/v1/ai/ask", json={"question": "Hi"}).status_code == 401
 
     @patch("app.services.ai_service.genai.GenerativeModel")
     def test_categorize_endpoint(self, MockModel, client, auth_headers):
@@ -77,7 +77,7 @@ class TestAIAPI:
         assert r.status_code == 200 and "category" in r.json()
 
     def test_history_endpoint(self, client, auth_headers, db, test_user):
-        db.add(AILog(user_id=test_user.id, question="Q", response="A", model_used="gemini-1.5-pro", tokens_used=10))
+        db.add(AILog(user_id=test_user.id, question="Q", response="A", model_used="gemini-2.5-pro", tokens_used=10))
         db.commit()
         r = client.get("/api/v1/ai/history", headers=auth_headers)
         assert r.status_code == 200 and r.json()[0]["question"] == "Q"

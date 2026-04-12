@@ -188,7 +188,7 @@ class TestTransactionAPI:
             "type": "expense",
             "date": "2024-01-15T10:00:00Z",
         })
-        assert response.status_code == 403
+        assert response.status_code == 401
 
     def test_get_transaction(self, client, auth_headers, test_transaction):
         response = client.get(f"/api/v1/transactions/{test_transaction.id}", headers=auth_headers)

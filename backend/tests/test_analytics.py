@@ -149,7 +149,7 @@ class TestAnalyticsAPI:
 
     def test_dashboard_requires_auth(self, client):
         response = client.get("/api/v1/analytics/dashboard")
-        assert response.status_code == 403
+        assert response.status_code == 401
 
     def test_create_budget_endpoint(self, client, auth_headers):
         response = client.post("/api/v1/analytics/budgets", headers=auth_headers, json={
