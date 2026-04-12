@@ -13,7 +13,7 @@ from app.schemas.analytics import AIResponse
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
 GEMINI_MODEL        = "gemini-2.5-flash"   # fast + cheap for most calls
-GEMINI_MODEL_PRO    = "gemini-2.5-pro"     # richer answers for /ask
+GEMINI_MODEL_PRO    = "gemini-2.5-flash"     # richer answers for /ask
 GEMINI_MODEL_FLASH  = "gemini-2.5-flash"   # categorization (single word)
 
 SYSTEM_PROMPT = """You are TREC AI, a smart personal finance assistant.
