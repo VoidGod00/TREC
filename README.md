@@ -54,7 +54,7 @@ FastAPI (8000)      Static Files (React build)
 | **Backend** | Python 3.12, FastAPI, SQLAlchemy 2.0, Alembic |
 | **Database** | PostgreSQL 16 (pooled via SQLAlchemy QueuePool) |
 | **Cache** | Redis 7 |
-| **AI** | Anthropic Claude (claude-sonnet-4) |
+| **AI** | Gemini ai (Gemini 2.5 Flash) |
 | **Frontend** | React 18, Redux Toolkit, React Router 6, Recharts |
 | **Auth** | JWT (access + refresh), bcrypt (12 rounds) |
 | **Infra** | Docker Compose, Nginx, GitHub Actions CI/CD |
