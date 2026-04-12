@@ -1,14 +1,15 @@
 # TREC — Transaction & Expense Controller
 
 > Enterprise-grade personal finance tracker with AI-powered insights, real-time analytics, and a beautiful dark-mode React UI.
- Live Demo: https://trec-omega.vercel.app/
+
+> Live Demo: https://trec-omega.vercel.app/
 ---
 
 ## Deployment Status 
 | Component |	Provider | URL |
 |---|---|---|
 | Frontend | Vercel | https://trec-omega.vercel.app/ |
-| Backend API | Render | https://your-render-backend-url.onrender.com |
+| Backend API | Render | https://trec.onrender.com |
 | Primary DB | Render (Postgres) | Managed Internal |
 | Cache DB | Upstash (Redis) | Serverless External |
 
