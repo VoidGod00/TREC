@@ -2,6 +2,16 @@
 
 > Enterprise-grade personal finance tracker with AI-powered insights, real-time analytics, and a beautiful dark-mode React UI.
 
+> Live Demo: https://trec-omega.vercel.app/
+---
+
+## Deployment Status 
+| Component |	Provider | URL |
+|---|---|---|
+| Frontend | Vercel | https://trec-omega.vercel.app/ |
+| Backend API | Render | https://trec.onrender.com |
+| Primary DB | Render (Postgres) | Managed Internal |
+| Cache DB | Upstash (Redis) | Serverless External |
 
 ---
 
@@ -333,7 +343,3 @@ Auto-categorization uses Claude Haiku for fast, cheap classification of transact
 4. Open a PR against `develop`
 
 ---
-
-## License
-
-MIT License — see [LICENSE](LICENSE).
