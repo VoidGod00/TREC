@@ -72,6 +72,10 @@ class ScannedReceipt(BaseModel):
 # Gemini prompt
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Gemini prompt
+# ---------------------------------------------------------------------------
+
 _EXTRACTION_PROMPT = """
 You are a precise receipt data extraction engine. Analyze the receipt image and return a JSON object ONLY — no markdown, no explanation.
 
@@ -90,7 +94,7 @@ Required JSON schema:
   "total": number,
   "payment_method": "cash|card|upi|other or null",
   "currency": "3-letter ISO code, default USD",
-  "suggested_category": "one of: Food & Dining, Groceries, Transport, Shopping, Entertainment, Health, Utilities, Travel, Subscriptions, Other",
+  "suggested_category": "one of: food, transport, rent, utilities, entertainment, healthcare, shopping, travel, education, savings, salary, freelance, investment, other",
   "confidence_score": 0.0 to 1.0,
   "raw_text": "all text you can read from the receipt"
 }
@@ -101,7 +105,6 @@ Rules:
 - confidence_score reflects overall extraction quality.
 - Return ONLY the JSON object.
 """
-
 
 # ---------------------------------------------------------------------------
 # Service class
