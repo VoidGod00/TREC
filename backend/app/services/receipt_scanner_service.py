@@ -112,7 +112,7 @@ Rules:
 class ReceiptScannerService:
     """Extracts structured data from a receipt image using Gemini Vision."""
 
-    def __init__(self, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, model_name: str = "gemini-2.5-flash"):
         self.model = genai.GenerativeModel(model_name)
 
     # ------------------------------------------------------------------

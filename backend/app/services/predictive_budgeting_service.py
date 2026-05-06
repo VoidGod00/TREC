@@ -71,7 +71,7 @@ class PredictiveBudgetingService:
         prediction = await svc.predict(db_session, user_id=42, monthly_budgets={...})
     """
 
-    def __init__(self, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, model_name: str = "gemini-2.5-flash"):
         self._gemini = genai.GenerativeModel(model_name)
 
     async def predict(
