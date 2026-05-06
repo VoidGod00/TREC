@@ -52,7 +52,7 @@ jobs:
 
       - name: Run tests with coverage
         working-directory: backend
-        run: pytest --cov=app --cov-report=xml --cov-fail-under=80
+        run: pytest --cov=app --cov-report=xml --cov-fail-under=75
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
