@@ -149,7 +149,14 @@ class ReceiptScannerService:
         try:
             img = Image.open(BytesIO(data))
             img = _apply_exif_rotation(img)
-            img.thumbnail((3000, 3000), Image.LANCZOS)
+
+            # FIX: Resize to 1024x1024 to ensure the image byte size fits inline constraints
+            img.thumbnail((1024, 1024), Image.LANCZOS)
+
+            # FIX: Ensure image is strictly RGB to prevent JPEG conversion crashes
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
             return img
         except Exception as exc:
             raise HTTPException(
@@ -158,18 +165,29 @@ class ReceiptScannerService:
             )
 
     async def _call_gemini(self, image: Image.Image) -> str:
-        """Send image + prompt to Gemini; handles potential ChunkedIteratorResult."""
+        """Send image + prompt to Gemini; forces inline Base64 to bypass location blocks."""
         try:
-            # We call the async method without streaming to avoid ChunkedIteratorResult issues
+            # FIX: Convert the image into raw JPEG bytes
+            buffered = BytesIO()
+            image.save(buffered, format="JPEG", quality=85)
+            img_bytes = buffered.getvalue()
+
+            # FIX: Explicitly package it as inline payload.
+            # This stops the SDK from trying to use the restricted Google File API.
+            image_part = {
+                "mime_type": "image/jpeg",
+                "data": img_bytes
+            }
+
+            # Pass the constructed `image_part` instead of the PIL image object
             response = await self.model.generate_content_async(
-                [_EXTRACTION_PROMPT, image],
+                contents=[_EXTRACTION_PROMPT, image_part],
                 generation_config=genai.GenerationConfig(
                     temperature=0.0,
                     max_output_tokens=2048,
                 ),
             )
 
-            # If the response is an iterator (common in some SDK versions), we collect it
             if hasattr(response, '__aiter__'):
                 full_text = ""
                 async for chunk in response:
@@ -190,7 +208,8 @@ class ReceiptScannerService:
         """Parse Gemini JSON output into ScannedReceipt with robust cleaning."""
         # Remove markdown code blocks and whitespace
         cleaned = re.sub(r"```(?:json)?", "", raw).strip()
-        cleaned = cleaned.replace("```", "")
+        cleaned = cleaned.replace("
+```", "")
 
         try:
             data = json.loads(cleaned)
