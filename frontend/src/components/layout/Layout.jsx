@@ -16,10 +16,10 @@ import BudgetModal from '../modals/BudgetModal';
 const NAV_ITEMS = [
     { to: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/transactions', icon: ArrowLeftRight,  label: 'Transactions' },
-    { to: '/receipts/scan',icon: Receipt,         label: 'Receipt Scanner' }, // ✨ NEW
+    { to: '/receipts/scan',icon: Receipt,         label: 'Receipt Scanner' },
     { to: '/analytics',    icon: BarChart3,       label: 'Analytics' },
-    { to: '/forecast',     icon: Sparkles,        label: 'Crystal Ball' },    // ✨ NEW
-    { to: '/health-score', icon: HeartPulse,      label: 'Health Score' },    // ✨ NEW
+    { to: '/forecast',     icon: Sparkles,        label: 'Crystal Ball' },
+    { to: '/health-score', icon: HeartPulse,      label: 'Health Score' },
     { to: '/ai-assistant', icon: Bot,             label: 'AI Assistant' },
     { to: '/settings',     icon: Settings,        label: 'Settings' },
 ];
@@ -36,12 +36,33 @@ export default function Layout() {
         navigate('/login');
     };
 
+    // Auto-close sidebar on mobile when a link is clicked
+    const handleNavClick = () => {
+        if (window.innerWidth < 768 && sidebarOpen) {
+            dispatch(toggleSidebar());
+        }
+    };
+
     return (
-        <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
+        <div className="flex h-screen bg-gray-950 text-white overflow-hidden relative">
+
+            {/* Mobile Backdrop Overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
+                    onClick={() => dispatch(toggleSidebar())}
+                />
+            )}
+
             {/* Sidebar */}
             <aside className={clsx(
-                'flex flex-col bg-gray-900 border-r border-gray-800 transition-all duration-300 shrink-0',
-                sidebarOpen ? 'w-64' : 'w-16'
+                'flex flex-col bg-gray-900 border-r border-gray-800 transition-all duration-300 h-full shrink-0',
+                // Mobile layout: Absolute positioned, slides in/out from the left
+                'absolute z-50 w-64',
+                sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+                // Desktop layout (md and up): Relative positioned, resizes instead of translating
+                'md:relative md:translate-x-0',
+                sidebarOpen ? 'md:w-64' : 'md:w-16'
             )}>
                 {/* Logo */}
                 <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-800">
@@ -50,8 +71,8 @@ export default function Layout() {
                     </div>
                     {sidebarOpen && (
                         <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-              TREC
-            </span>
+                            TREC
+                        </span>
                     )}
                 </div>
 
@@ -61,6 +82,7 @@ export default function Layout() {
                         <NavLink
                             key={to}
                             to={to}
+                            onClick={handleNavClick}
                             className={({ isActive }) => clsx(
                                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium',
                                 isActive
@@ -98,9 +120,9 @@ export default function Layout() {
             </aside>
 
             {/* Main */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden w-full">
                 {/* Topbar */}
-                <header className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-gray-900/50 backdrop-blur shrink-0">
+                <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-800 bg-gray-900/50 backdrop-blur shrink-0">
                     <button
                         onClick={() => dispatch(toggleSidebar())}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
@@ -116,7 +138,7 @@ export default function Layout() {
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto p-4 md:p-6">
                     <Outlet />
                 </main>
             </div>

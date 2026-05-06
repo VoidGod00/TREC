@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bot, Send, User, Sparkles, Lightbulb, RefreshCw, Mic, MicOff, MessageSquare, Volume2, VolumeX } from 'lucide-react';
 import { aiApi } from '../services/api';
-import { Button, Card, LoadingSpinner } from '../components/common';
+import { Button, Card } from '../components/common';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
@@ -17,22 +17,22 @@ const QUICK_QUESTIONS = [
 function MessageBubble({ msg }) {
     const isUser = msg.role === 'user';
     return (
-        <div className={clsx('flex gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
+        <div className={clsx('flex gap-2 sm:gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
             <div className={clsx(
-                'w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5',
+                'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5',
                 isUser ? 'bg-violet-600' : 'bg-indigo-600'
             )}>
                 {isUser ? <User size={14} /> : <Bot size={14} />}
             </div>
             <div className={clsx(
-                'max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap',
+                'max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap',
                 isUser
                     ? 'bg-violet-600 text-white rounded-tr-sm'
                     : 'bg-gray-800 text-gray-200 border border-gray-700 rounded-tl-sm'
             )}>
                 {msg.content}
                 {msg.timestamp && (
-                    <p className="text-xs opacity-50 mt-1">
+                    <p className="text-[10px] sm:text-xs opacity-50 mt-1">
                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                 )}
@@ -185,7 +185,7 @@ export default function AIAssistantPage() {
     };
 
     return (
-        <div className="space-y-6 h-full flex flex-col">
+        <div className="space-y-4 sm:space-y-6 h-full flex flex-col p-2 sm:p-0">
             <style>{`
                 @keyframes pulse-red {
                     0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
@@ -193,17 +193,20 @@ export default function AIAssistantPage() {
                     100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
                 }
                 .animate-mic-pulse { animation: pulse-red 1.5s infinite; }
+                /* Hide scrollbar for mobile horizontal scrolling */
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
 
-            <div className="flex items-center justify-between shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between shrink-0 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                    <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                         <Bot size={24} className="text-violet-400" /> AI Assistant
                     </h1>
-                    <p className="text-gray-400 text-sm mt-1">Chat or talk with your financial guide</p>
+                    <p className="text-gray-400 text-xs sm:text-sm mt-1">Chat or talk with your financial guide</p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     <Button
                         variant="secondary"
                         size="sm"
@@ -222,14 +225,36 @@ export default function AIAssistantPage() {
                 </div>
             </div>
 
-            <div className="flex gap-6 flex-1 min-h-0">
-                <div className="flex-1 flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            {/* Mobile-only Quick Questions Carousel */}
+            <div className="flex lg:hidden overflow-x-auto gap-2 pb-1 hide-scrollbar shrink-0">
+                {QUICK_QUESTIONS.map((q) => (
+                    <button
+                        key={q}
+                        onClick={() => sendMessage(q)}
+                        disabled={loading}
+                        className="whitespace-nowrap px-3 py-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 transition-colors border border-gray-700"
+                    >
+                        {q}
+                    </button>
+                ))}
+            </div>
 
-                    <div className="flex-1 overflow-y-auto p-5 space-y-4">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 flex-1 min-h-0">
+                <div className="flex-1 flex flex-col bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-sm">
+
+                    {/* Mobile-only Insights Display */}
+                    {insights && (
+                        <div className="lg:hidden mx-4 mt-4 p-3 bg-gray-800/80 border border-violet-500/30 rounded-xl flex items-start gap-2 animate-in slide-in-from-top-2">
+                            <Sparkles size={14} className="text-violet-400 shrink-0 mt-0.5" />
+                            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{insights}</p>
+                        </div>
+                    )}
+
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
                         {messages.map((msg, i) => <MessageBubble key={i} msg={msg} />)}
                         {loading && (
                             <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center"><Bot size={14} /></div>
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-600 flex items-center justify-center shrink-0"><Bot size={14} /></div>
                                 <div className="bg-gray-800 border border-gray-700 rounded-2xl rounded-tl-sm px-4 py-3">
                                     <div className="flex gap-1.5 items-center">
                                         {[0, 150, 300].map((d) => <span key={d} className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />)}
@@ -240,8 +265,7 @@ export default function AIAssistantPage() {
                         <div ref={bottomRef} />
                     </div>
 
-                    <div className="p-4 border-t border-gray-800 flex flex-col gap-4 bg-gray-900/50">
-
+                    <div className="p-3 sm:p-4 border-t border-gray-800 flex flex-col gap-3 sm:gap-4 bg-gray-900/50">
                         <div className="flex justify-center">
                             <div className="relative flex bg-gray-950 p-1 rounded-full border border-gray-800 shadow-inner">
                                 <div
@@ -253,7 +277,7 @@ export default function AIAssistantPage() {
                                 <button
                                     onClick={() => setInputMode('text')}
                                     className={clsx(
-                                        "relative z-10 flex items-center justify-center gap-2 w-24 py-1.5 text-sm font-medium rounded-full transition-colors",
+                                        "relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 w-20 sm:w-24 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
                                         inputMode === 'text' ? 'text-white' : 'text-gray-500 hover:text-gray-300'
                                     )}
                                 >
@@ -262,7 +286,7 @@ export default function AIAssistantPage() {
                                 <button
                                     onClick={() => setInputMode('voice')}
                                     className={clsx(
-                                        "relative z-10 flex items-center justify-center gap-2 w-24 py-1.5 text-sm font-medium rounded-full transition-colors",
+                                        "relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 w-20 sm:w-24 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors",
                                         inputMode === 'voice' ? 'text-white' : 'text-gray-500 hover:text-gray-300'
                                     )}
                                 >
@@ -272,9 +296,9 @@ export default function AIAssistantPage() {
                         </div>
 
                         {inputMode === 'text' ? (
-                            <div className="flex gap-3 transition-opacity animate-in fade-in">
+                            <div className="flex gap-2 sm:gap-3 transition-opacity animate-in fade-in">
                                 <input
-                                    className="flex-1 px-4 py-2.5 rounded-xl bg-gray-800 border border-gray-700 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-violet-500 transition-colors"
+                                    className="flex-1 px-3 sm:px-4 py-2.5 rounded-xl bg-gray-800 border border-gray-700 text-white text-base sm:text-sm placeholder-gray-500 focus:outline-none focus:border-violet-500 transition-colors"
                                     placeholder="Ask about your finances..."
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
@@ -300,7 +324,7 @@ export default function AIAssistantPage() {
                                     {isListening ? <MicOff size={24} /> : <Mic size={24} />}
                                 </button>
                                 <p className={clsx(
-                                    "text-sm font-medium transition-colors",
+                                    "text-xs sm:text-sm font-medium transition-colors",
                                     isListening ? "text-red-400" : "text-gray-500"
                                 )}>
                                     {isListening ? "Listening... Tap to stop" : "Tap the mic to speak"}
@@ -310,6 +334,7 @@ export default function AIAssistantPage() {
                     </div>
                 </div>
 
+                {/* Desktop Sidebar */}
                 <div className="w-72 shrink-0 space-y-4 overflow-y-auto hidden lg:block">
                     <Card title="Quick Questions">
                         <div className="space-y-2">
@@ -328,7 +353,7 @@ export default function AIAssistantPage() {
 
                     {insights && (
                         <Card title="AI Insights">
-                            <div className="flex items-start gap-2">
+                            <div className="flex items-start gap-2 animate-in slide-in-from-bottom-2">
                                 <Sparkles size={14} className="text-violet-400 shrink-0 mt-0.5" />
                                 <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{insights}</p>
                             </div>
