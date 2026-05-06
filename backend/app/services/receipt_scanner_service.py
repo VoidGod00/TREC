@@ -208,8 +208,7 @@ class ReceiptScannerService:
         """Parse Gemini JSON output into ScannedReceipt with robust cleaning."""
         # Remove markdown code blocks and whitespace
         cleaned = re.sub(r"```(?:json)?", "", raw).strip()
-        cleaned = cleaned.replace("
-```", "")
+        cleaned = cleaned.replace("```", "")
 
         try:
             data = json.loads(cleaned)
