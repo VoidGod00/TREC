@@ -107,12 +107,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # This step converts "VoidGod00/TREC" to "voidgod00/trec"
+      - name: Lowercase Repository Name
+        run: |
+          echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
       - name: Build and push backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
-          tags: ghcr.io/${{ github.repository }}/backend:latest
+          
+          tags: ghcr.io/${{ env.REPO_LC }}/backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -121,7 +127,8 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ghcr.io/${{ github.repository }}/frontend:latest
+          
+          tags: ghcr.io/${{ env.REPO_LC }}/frontend:latest
           build-args: |
             VITE_API_URL=${{ vars.VITE_API_URL }}
           cache-from: type=gha
