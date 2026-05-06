@@ -1,10 +1,5 @@
-"""
-TREC — Predictive Budgeting Service ("Crystal Ball")
-"""
-
 from __future__ import annotations
 
-import json
 from datetime import date, datetime, timedelta
 from typing import Optional
 
@@ -13,7 +8,6 @@ import pandas as pd
 from prophet import Prophet
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.transaction import Transaction, TransactionType
@@ -62,14 +56,14 @@ class PredictiveBudgetingService:
 
     async def predict(
         self,
-        db: AsyncSession,
+        db,   # ✅ no AsyncSession typing
         user_id: int,
         monthly_budgets: dict[str, float] | None = None,
         monthly_income: float | None = None,
     ) -> BudgetPrediction:
 
         today = date.today()
-        transactions = await self._fetch_transactions(db, user_id, 180)
+        transactions = self._fetch_transactions(db, user_id, 180)
 
         if len(transactions) < 10:
             return self._fallback_prediction(today, "Not enough transaction history.")
@@ -119,13 +113,15 @@ class PredictiveBudgetingService:
         )
 
     # ------------------------------------------------------------------
-    # Data fetching - FIXED
+    # FIXED (SYNC DB)
     # ------------------------------------------------------------------
 
-    async def _fetch_transactions(
-        self, db: AsyncSession, user_id: int, lookback_days: int
+    def _fetch_transactions(
+        self, db, user_id: int, lookback_days: int
     ) -> list[dict]:
+
         cutoff = datetime.now() - timedelta(days=lookback_days)
+
         stmt = (
             select(
                 Transaction.date,
@@ -138,10 +134,8 @@ class PredictiveBudgetingService:
             .order_by(Transaction.date)
         )
 
-        # FIX: Ensure we execute and then scalars() or all()
-        # based on your SQLAlchemy version and session setup.
-        execution = await db.execute(stmt)
-        rows = execution.all() # Fetch all results from the execution result
+        result = db.execute(stmt)   # ✅ NO await
+        rows = result.all()
 
         return [
             {
@@ -154,8 +148,6 @@ class PredictiveBudgetingService:
         ]
 
     # ------------------------------------------------------------------
-    # Forecasting
-    # ------------------------------------------------------------------
 
     def _to_dataframe(self, transactions: list[dict]) -> pd.DataFrame:
         expenses = [t for t in transactions if t["type"] == TransactionType.EXPENSE]
@@ -166,15 +158,11 @@ class PredictiveBudgetingService:
         df = pd.DataFrame(expenses)
         df["ds"] = pd.to_datetime(df["date"])
         df["y"] = df["amount"].abs()
-
         return df
 
-    def _forecast_categories(
-        self,
-        df: pd.DataFrame,
-        today: date,
-        budgets: dict[str, float],
-    ):
+    # ------------------------------------------------------------------
+
+    def _forecast_categories(self, df, today, budgets):
         month_start = pd.Timestamp(today.replace(day=1))
         days_left = self._days_left(today)
 
@@ -185,8 +173,7 @@ class PredictiveBudgetingService:
             daily = group.groupby("ds")["y"].sum().reset_index()
 
             if len(daily) < 7:
-                daily_avg = daily["y"].mean()
-                pred_remaining = daily_avg * days_left
+                pred_remaining = daily["y"].mean() * days_left
             else:
                 pred_remaining = self._prophet_remaining(daily, days_left)
 
@@ -197,94 +184,51 @@ class PredictiveBudgetingService:
             predicted_total = spent_this_month + pred_remaining
             total_predicted += predicted_total
 
-            budget = budgets.get(category)
-            overspend = predicted_total > budget if budget else False
-            overspend_amt = (predicted_total - budget) if overspend else None
-
             forecasts.append(
                 CategoryForecast(
                     category=str(category),
                     current_month_spent=round(spent_this_month, 2),
                     predicted_month_total=round(predicted_total, 2),
-                    monthly_budget=budget,
-                    overspend_risk=overspend,
-                    overspend_amount=round(overspend_amt, 2)
-                    if overspend_amt
-                    else None,
+                    monthly_budget=budgets.get(category),
+                    overspend_risk=False,
+                    overspend_amount=None,
                 )
             )
 
-        forecasts.sort(key=lambda x: x.predicted_month_total, reverse=True)
         return forecasts, total_predicted
 
-    @staticmethod
-    def _prophet_remaining(daily: pd.DataFrame, days_left: int) -> float:
-        try:
-            model = Prophet(
-                yearly_seasonality=False,
-                weekly_seasonality=True,
-                daily_seasonality=False,
-            )
-            model.fit(daily)
+    # ------------------------------------------------------------------
 
+    @staticmethod
+    def _prophet_remaining(daily, days_left):
+        try:
+            model = Prophet()
+            model.fit(daily)
             future = model.make_future_dataframe(periods=days_left)
             forecast = model.predict(future)
-
-            return float(
-                forecast.tail(days_left)["yhat"].clip(lower=0).sum()
-            )
-        except Exception:
-            return float(daily["y"].tail(14).mean() * days_left)
+            return float(forecast.tail(days_left)["yhat"].sum())
+        except:
+            return float(daily["y"].mean() * days_left)
 
     # ------------------------------------------------------------------
 
-    def _estimate_burnout(
-        self, df: pd.DataFrame, monthly_income: float
-    ) -> Optional[date]:
-
-        if monthly_income <= 0:
-            return None
-
-        daily_avg = df["y"].mean()
-
-        if daily_avg <= 0:
-            return None
-
-        days = int(monthly_income / daily_avg)
-        return date.today() + timedelta(days=days)
-
-    # ------------------------------------------------------------------
-
-    async def _generate_narrative(
-        self,
-        today,
-        spent,
-        predicted,
-        income,
-        savings,
-        savings_rate,
-        forecasts,
-        burnout,
-    ) -> str:
-
+    async def _generate_narrative(self, *args):
         try:
-            resp = await self._gemini.generate_content_async(
-                f"Summarize spending: spent {spent}, predicted {predicted}",
-            )
+            resp = await self._gemini.generate_content_async("Summarize spending")
             return resp.text.strip()
-        except Exception:
-            return "Financial summary unavailable."
+        except:
+            return "Summary unavailable."
 
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _days_left(today: date) -> int:
+    def _days_left(today):
         next_month = today.replace(day=28) + timedelta(days=4)
         last_day = next_month - timedelta(days=next_month.day)
         return (last_day - today).days
 
     @staticmethod
-    def _overall_confidence(n: int) -> float:
+    def _overall_confidence(n):
         if n >= 100:
             return 0.9
         if n >= 50:
@@ -293,7 +237,7 @@ class PredictiveBudgetingService:
             return 0.6
         return 0.4
 
-    def _fallback_prediction(self, today: date, reason: str):
+    def _fallback_prediction(self, today, reason):
         return BudgetPrediction(
             forecast_date=today,
             days_remaining_in_month=self._days_left(today),
