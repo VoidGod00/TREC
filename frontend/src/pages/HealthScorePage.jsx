@@ -51,9 +51,9 @@ export default function HealthScorePage() {
       {/* ── Config bar ── */}
       <div style={s.configBar}>
         {[
-          { label: "Monthly Income", val: income, set: setIncome, prefix: "$" },
-          { label: "Savings Balance", val: savingsBal, set: setSavingsBal, prefix: "$" },
-          { label: "Monthly Debt Payments", val: debt, set: setDebt, prefix: "$" },
+          { label: "Monthly Income", val: income, set: setIncome, prefix: "₹" },
+          { label: "Savings Balance", val: savingsBal, set: setSavingsBal, prefix: "₹" },
+          { label: "Monthly Debt Payments", val: debt, set: setDebt, prefix: "₹" },
         ].map(({ label, val, set, prefix }) => (
           <div key={label} style={s.inputWrap}>
             <label style={s.inputLabel}>{label}</label>
