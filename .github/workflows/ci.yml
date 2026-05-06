@@ -94,6 +94,10 @@ jobs:
     needs: [backend-test, frontend-test]
     if: github.ref == 'refs/heads/main'
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - uses: actions/checkout@v4
 
