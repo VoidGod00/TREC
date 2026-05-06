@@ -306,7 +306,7 @@ class HealthScoreService:
         today = date.today()
 
         stmt = (
-            select(Budget.category, Budget.amount)
+            select(Budget.category, Budget.limit_amount)
             .where(Budget.user_id == user_id)
             .where(Budget.month == today.month)
             .where(Budget.year == today.year)
