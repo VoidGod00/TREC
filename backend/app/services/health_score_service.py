@@ -6,7 +6,6 @@ from typing import Optional
 
 from pydantic import BaseModel
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.transaction import Transaction, TransactionType
 from app.models.budget import Budget
@@ -52,7 +51,7 @@ class HealthScoreService:
 
     async def compute(
         self,
-        db: AsyncSession,
+        db,   # ✅ no AsyncSession typing — sync session is injected
         user_id: int,
         monthly_income: float = 0.0,
         savings_balance: float = 0.0,
@@ -254,7 +253,7 @@ class HealthScoreService:
     # ------------------------------------------------------------------
 
     async def _compute_streak(
-        self, db: AsyncSession, user_id: int, today: date
+        self, db, user_id: int, today: date
     ) -> int:
 
         stmt = (
@@ -265,7 +264,7 @@ class HealthScoreService:
             .order_by(func.date(Transaction.date).desc())
         )
 
-        result = await db.execute(stmt)
+        result = db.execute(stmt)   # ✅ no await
         rows = result.scalars().all()
 
         days = {r if isinstance(r, date) else r.date() for r in rows}
@@ -280,11 +279,11 @@ class HealthScoreService:
         return streak
 
     # ------------------------------------------------------------------
-    # DB helpers (FIXED)
+    # DB helpers (FIXED — sync db.execute, no await)
     # ------------------------------------------------------------------
 
     async def _fetch_monthly_expenses(
-        self, db: AsyncSession, user_id: int, month_start: date
+        self, db, user_id: int, month_start: date
     ) -> dict[str, float]:
 
         stmt = (
@@ -295,13 +294,13 @@ class HealthScoreService:
             .group_by(Transaction.category)
         )
 
-        result = await db.execute(stmt)
+        result = db.execute(stmt)   # ✅ no await
         rows = result.all()
 
         return {r[0]: float(r[1]) for r in rows}
 
     async def _fetch_budgets(
-        self, db: AsyncSession, user_id: int
+        self, db, user_id: int
     ) -> dict[str, float]:
 
         today = date.today()
@@ -313,7 +312,7 @@ class HealthScoreService:
             .where(Budget.year == today.year)
         )
 
-        result = await db.execute(stmt)
+        result = db.execute(stmt)   # ✅ no await
         rows = result.all()
 
         return {r[0]: float(r[1]) for r in rows}
