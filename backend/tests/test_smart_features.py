@@ -58,7 +58,14 @@ class TestSmartFeaturesCoverage:
 
     # 4. Targeting app/schemas/budget.py (Missing lines 1-19)
     def test_budget_schema_coverage(self):
-        # Simply instantiating the schema marks the file as covered
-        data = {"category": "Food", "amount": 500.0, "month": 5, "year": 2026}
+        # Fix 1: Use lowercase 'food' to match the Enum
+        # Fix 2: Use 'limit_amount' instead of 'amount'
+        data = {
+            "category": "food",
+            "limit_amount": 500.0,
+            "month": 5,
+            "year": 2026
+        }
         budget = BudgetCreate(**data)
-        assert budget.category == "Food"
+        assert budget.category == "food"
+        assert budget.limit_amount == 500.0
