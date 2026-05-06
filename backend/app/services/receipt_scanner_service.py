@@ -19,14 +19,13 @@ from fastapi import HTTPException, UploadFile, status
 from PIL import Image
 from pydantic import BaseModel, Field, field_validator
 
-from app.core.config import settings  # existing settings module
-from app.core.logging import logger   # IMPORTING YOUR CUSTOM LOGGER DIRECTLY
+from app.core.config import settings
+from app.core.logging import logger
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-# Add GEMINI_API_KEY to your .env / Pydantic settings
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic"}
@@ -115,45 +114,26 @@ class ReceiptScannerService:
     def __init__(self, model_name: str = "gemini-2.5-flash"):
         self.model = genai.GenerativeModel(model_name)
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     async def scan_receipt(self, file: UploadFile) -> ScannedReceipt:
-        """
-        Accept a FastAPI UploadFile, call Gemini Vision, return ScannedReceipt.
-
-        Usage in a route:
-            scanner = ReceiptScannerService()
-            result = await scanner.scan_receipt(upload_file)
-        """
         self._validate_file(file)
         raw_bytes = await file.read()
         self._validate_size(raw_bytes)
 
         pil_image = self._load_image(raw_bytes, file.content_type)
-        gemini_response = await self._call_gemini(pil_image)
-        receipt = self._parse_response(gemini_response)
+        gemini_response_text = await self._call_gemini(pil_image)
+        receipt = self._parse_response(gemini_response_text)
 
         logger.info(
-            "receipt_scanned",
-            merchant=receipt.merchant_name,
-            total=str(receipt.total),
-            confidence=receipt.confidence_score,
+            f"Receipt scanned successfully: {receipt.merchant_name} - Total: {receipt.total}"
         )
         return receipt
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
 
     @staticmethod
     def _validate_file(file: UploadFile) -> None:
         if file.content_type not in ALLOWED_MIME_TYPES:
             raise HTTPException(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                detail=f"Unsupported file type: {file.content_type}. "
-                       f"Allowed: {', '.join(ALLOWED_MIME_TYPES)}",
+                detail=f"Unsupported file type: {file.content_type}",
             )
 
     @staticmethod
@@ -161,83 +141,87 @@ class ReceiptScannerService:
         if len(data) > MAX_FILE_BYTES:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large ({len(data) // 1024} KB). Max: {MAX_FILE_BYTES // 1024} KB.",
+                detail="File size exceeds 10MB limit.",
             )
 
     @staticmethod
     def _load_image(data: bytes, mime_type: str) -> Image.Image:
         try:
             img = Image.open(BytesIO(data))
-            # Normalise rotation from EXIF
             img = _apply_exif_rotation(img)
-            # Resize if huge (Gemini works fine up to ~3000px)
             img.thumbnail((3000, 3000), Image.LANCZOS)
             return img
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Could not decode image: {exc}",
-            ) from exc
+                detail=f"Image decoding failed: {exc}",
+            )
 
     async def _call_gemini(self, image: Image.Image) -> str:
-        """Send image + prompt to Gemini; return raw text response."""
+        """Send image + prompt to Gemini; handles potential ChunkedIteratorResult."""
         try:
+            # We call the async method without streaming to avoid ChunkedIteratorResult issues
             response = await self.model.generate_content_async(
                 [_EXTRACTION_PROMPT, image],
                 generation_config=genai.GenerationConfig(
-                    temperature=0.0,  # deterministic extraction
+                    temperature=0.0,
                     max_output_tokens=2048,
                 ),
             )
+
+            # If the response is an iterator (common in some SDK versions), we collect it
+            if hasattr(response, '__aiter__'):
+                full_text = ""
+                async for chunk in response:
+                    full_text += chunk.text
+                return full_text
+
             return response.text
+
         except Exception as exc:
-            logger.error("gemini_api_error", error=str(exc))
+            logger.error(f"Gemini Vision API Error: {str(exc)}")
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="Receipt scanning service temporarily unavailable.",
-            ) from exc
+                detail="AI service failed to process the image. Check logs for location or API errors.",
+            )
 
     @staticmethod
     def _parse_response(raw: str) -> ScannedReceipt:
-        """Parse Gemini JSON output into ScannedReceipt, with fallback."""
-        # Strip accidental markdown fences
+        """Parse Gemini JSON output into ScannedReceipt with robust cleaning."""
+        # Remove markdown code blocks and whitespace
         cleaned = re.sub(r"```(?:json)?", "", raw).strip()
+        cleaned = cleaned.replace("```", "")
+
         try:
             data = json.loads(cleaned)
-        except json.JSONDecodeError as exc:
-            logger.warning("gemini_json_parse_failed", raw=raw[:200])
+        except json.JSONDecodeError:
+            logger.error(f"Failed to parse Gemini JSON: {cleaned[:500]}")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Could not extract structured data from receipt.",
-            ) from exc
+                detail="AI returned malformed data. Try a clearer photo.",
+            )
 
-        # Ensure total exists (required field)
+        # Total is a hard requirement for the ScannedReceipt schema
         if not data.get("total"):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Could not determine receipt total from image.",
+                detail="Receipt total could not be identified.",
             )
 
         try:
             return ScannedReceipt(**data)
         except Exception as exc:
-            logger.error("receipt_schema_error", error=str(exc), data=data)
+            logger.error(f"Schema Validation Error: {str(exc)}")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Receipt data malformed: {exc}",
-            ) from exc
-
-
-# ---------------------------------------------------------------------------
-# Utility
-# ---------------------------------------------------------------------------
+                detail=f"Data validation failed: {exc}",
+            )
 
 
 def _apply_exif_rotation(img: Image.Image) -> Image.Image:
-    """Correct image orientation from EXIF data."""
     try:
         from PIL import ExifTags
-        exif = img._getexif()  # type: ignore[attr-defined]
+        exif = img._getexif()
         if exif is None:
             return img
         orientation_key = next(
