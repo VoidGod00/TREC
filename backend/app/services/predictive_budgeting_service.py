@@ -119,15 +119,13 @@ class PredictiveBudgetingService:
         )
 
     # ------------------------------------------------------------------
-    # FIXED: Data fetching
+    # Data fetching - FIXED
     # ------------------------------------------------------------------
 
     async def _fetch_transactions(
         self, db: AsyncSession, user_id: int, lookback_days: int
     ) -> list[dict]:
-
         cutoff = datetime.now() - timedelta(days=lookback_days)
-
         stmt = (
             select(
                 Transaction.date,
@@ -140,17 +138,17 @@ class PredictiveBudgetingService:
             .order_by(Transaction.date)
         )
 
-        result = await db.execute(stmt)
-
-        # ✅ FIX: avoid ChunkedIteratorResult issues
-        rows = result.mappings().all()
+        # FIX: Ensure we execute and then scalars() or all()
+        # based on your SQLAlchemy version and session setup.
+        execution = await db.execute(stmt)
+        rows = execution.all() # Fetch all results from the execution result
 
         return [
             {
-                "date": r["date"],
-                "amount": float(r["amount"]),
-                "category": r["category"],
-                "type": r["type"],
+                "date": r.date,
+                "amount": float(r.amount),
+                "category": r.category,
+                "type": r.type,
             }
             for r in rows
         ]
