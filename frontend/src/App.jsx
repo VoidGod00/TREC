@@ -15,6 +15,9 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import AIAssistantPage from './pages/AIAssistantPage';
 import SettingsPage from './pages/SettingsPage';
 import NotFoundPage from './pages/NotFoundPage';
+import ReceiptScannerPage from "./pages/ReceiptScannerPage";
+import CrystalBallPage from "./pages/CrystalBallPage";
+import HealthScorePage from "./pages/HealthScorePage";
 
 // Helper Route Components
 const ProtectedRoute = ({ children }) => {
@@ -60,6 +63,9 @@ export default function App() {
                         <Route path="analytics" element={<AnalyticsPage />} />
                         <Route path="ai-assistant" element={<AIAssistantPage />} />
                         <Route path="settings" element={<SettingsPage />} />
+                        <Route path="/receipts/scan" element={<ReceiptScannerPage />} />
+                        <Route path="/forecast" element={<CrystalBallPage />} />
+                        <Route path="/health-score" element={<HealthScorePage />} />
                     </Route>
 
                     {/* 404 Catch-all */}

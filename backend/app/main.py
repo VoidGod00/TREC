@@ -22,6 +22,7 @@ from app.routes.auth import router as auth_router
 from app.routes.transactions import router as transactions_router
 from app.routes.analytics import router as analytics_router
 from app.routes.ai import router as ai_router
+from app.routes.smart_features import smart_router
 
 
 @asynccontextmanager
@@ -87,6 +88,7 @@ app.include_router(auth_router, prefix=API)
 app.include_router(transactions_router, prefix=API)
 app.include_router(analytics_router, prefix=API)
 app.include_router(ai_router, prefix=API)
+app.include_router(smart_router, prefix=API)
 
 
 @app.get("/health", tags=["Health"])

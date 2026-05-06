@@ -2,7 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     LayoutDashboard, ArrowLeftRight, BarChart3, Bot,
-    Settings, LogOut, Menu, X, TrendingUp, Bell
+    Settings, LogOut, Menu, X, TrendingUp, Bell, Receipt, Sparkles, HeartPulse
 } from 'lucide-react';
 import { logoutUser } from '../../store/slices/authSlice';
 import { toggleSidebar } from '../../store/slices/uiSlice';
@@ -15,10 +15,13 @@ import BudgetModal from '../modals/BudgetModal';
 
 const NAV_ITEMS = [
     { to: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/transactions', icon: ArrowLeftRight,   label: 'Transactions' },
-    { to: '/analytics',    icon: BarChart3,        label: 'Analytics' },
-    { to: '/ai-assistant', icon: Bot,              label: 'AI Assistant' },
-    { to: '/settings',     icon: Settings,         label: 'Settings' },
+    { to: '/transactions', icon: ArrowLeftRight,  label: 'Transactions' },
+    { to: '/receipts/scan',icon: Receipt,         label: 'Receipt Scanner' }, // ✨ NEW
+    { to: '/analytics',    icon: BarChart3,       label: 'Analytics' },
+    { to: '/forecast',     icon: Sparkles,        label: 'Crystal Ball' },    // ✨ NEW
+    { to: '/health-score', icon: HeartPulse,      label: 'Health Score' },    // ✨ NEW
+    { to: '/ai-assistant', icon: Bot,             label: 'AI Assistant' },
+    { to: '/settings',     icon: Settings,        label: 'Settings' },
 ];
 
 export default function Layout() {
